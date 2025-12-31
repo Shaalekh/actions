@@ -1,3 +1,5 @@
+import time
+
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer
@@ -14,13 +16,19 @@ class FibonacciServerClass(Node):
         
     def _execute_callback(self, goal_handle):
         self.get_logger().info('Eecuting goal...')
-        sequence = [0,1]
+        
+        fdb_msg=Fibonacci.Feedback()
+        fdb_msg.sequence = [0,1]
+
         for i in range (1, goal_handle.request.order):
-            sequence.append(sequence[i] + sequence[i-1])
+            fdb_msg.sequence.append(fdb_msg.sequence[i] + fdb_msg.sequence[i-1])
+            self.get_logger().info('Feedback: {0}'.format(fdb_msg.sequence))
+            goal_handle.publish_feedback(fdb_msg)
+            time.sleep(1.0)
 
         goal_handle.succeed()
         result=Fibonacci.Result()
-        result.sequence=sequence
+        result.sequence=fdb_msg.sequence
         return result
     
 

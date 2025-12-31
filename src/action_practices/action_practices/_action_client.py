@@ -18,7 +18,7 @@ class FibonacciClientClass(Node):
 
         self._action_client.wait_for_server()
         
-        self.send_goal_future = self._action_client.send_goal_async(goal_msg)
+        self.send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
         
         self.send_goal_future.add_done_callback(self.goal_response_callback)
 
@@ -30,13 +30,17 @@ class FibonacciClientClass(Node):
 
         self.get_logger().info('Goal accepted :)')
 
-        self._get_result_future = goal_handle.get_result_async()
-        self._get_result_future.add_done_callback(self.get_result_callback)
+        self.get_result_future = goal_handle.get_result_async()
+        self.get_result_future.add_done_callback(self.get_result_callback)
 
     def get_result_callback(self, future):
         result = future.result().result
         self.get_logger().info('Result: {0}'.format(result.sequence))
         rclpy.shutdown()
+
+    def feedback_callback(self, fbd_msg):
+        feedback = fbd_msg.feedback
+        self.get_logger().info('Received feedback: {0}'.format(feedback.sequence))
 
 def main():
     rclpy.init()
